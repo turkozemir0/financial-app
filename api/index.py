@@ -39,6 +39,8 @@ TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60
 SECRET_KEY = os.environ.get("APP_SECRET", "change-this-secret-in-production")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+DEMO_EMAIL = os.environ.get("DEMO_EMAIL", "demo@finsignal.app").strip().lower()
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "FinSignal123").strip()
 
 
 class AuthPayload(BaseModel):
@@ -51,6 +53,16 @@ def _normalize_email(email: str) -> str:
     if "@" not in value or "." not in value.split("@")[-1]:
         raise HTTPException(status_code=400, detail="Gecerli bir email giriniz")
     return value
+
+
+def _ensure_demo_user(users: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    if DEMO_EMAIL and DEMO_PASSWORD and DEMO_EMAIL not in users:
+        users[DEMO_EMAIL] = {
+            "password_hash": _hash_password(DEMO_PASSWORD),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "is_demo": "true",
+        }
+    return users
 
 
 def _load_users() -> Dict[str, Dict[str, str]]:
@@ -296,8 +308,8 @@ def home() -> str:
         </div>
         <div>
           <div class="auth">
-            <input id="email" type="email" placeholder="mail@ornek.com" />
-            <input id="password" type="password" placeholder="sifre" />
+            <input id="email" type="email" placeholder="mail@ornek.com" value="demo@finsignal.app" />
+            <input id="password" type="password" placeholder="sifre" value="FinSignal123" />
             <button id="loginBtn">Giris Yap</button>
             <button id="logoutBtn" class="btn-warn">Cikis</button>
           </div>
@@ -316,7 +328,7 @@ def home() -> str:
           <option value="Stock">Stock</option>
         </select>
         <input id="search" type="text" placeholder="Varlik ara (gold, btc, apple...)" />
-        <input id="limit" type="number" min="1" max="120" value="30" />
+        <input id="limit" type="number" min="1" max="120" value="10" />
         <button id="refresh">Yenile</button>
       </div>
 
@@ -446,16 +458,22 @@ def home() -> str:
     async function loadSignals() {
       metaEl.textContent = "Canli veri aliniyor...";
       rowsEl.innerHTML = "";
-      const maxAssets = Math.min(120, Math.max(1, Number(limitEl.value) || 30));
+      const maxAssets = Math.min(120, Math.max(1, Number(limitEl.value) || 10));
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
       try {
-        const res = await fetch(`/api/signals?max_assets=${maxAssets}`);
+        const res = await fetch(`/api/signals?max_assets=${maxAssets}`, { signal: controller.signal });
         const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Signals endpoint hatasi");
         const updatedAt = data.generated_at ? new Date(data.generated_at).toLocaleString("tr-TR") : new Date().toLocaleString("tr-TR");
         cache = (data.signals || []).map((x) => ({ ...x, updated_at: updatedAt }));
         render(cache);
       } catch (err) {
-        metaEl.textContent = `Hata: ${err.message}`;
+        const msg = err.name === "AbortError" ? "Istek zaman asimina ugradi. Varlik limitini dusurup tekrar dene." : (err.message || "Bilinmeyen hata");
+        metaEl.textContent = `Hata: ${msg}`;
         rowsEl.innerHTML = `<tr><td colspan="10">Veri alinamadi.</td></tr>`;
+      } finally {
+        clearTimeout(timer);
       }
     }
 
@@ -559,7 +577,7 @@ def register(payload: AuthPayload):
     email = _normalize_email(payload.email)
 
     with USERS_LOCK:
-        users = _load_users()
+        users = _ensure_demo_user(_load_users())
         if email in users:
             raise HTTPException(status_code=409, detail="Bu email zaten kayitli")
         users[email] = {
@@ -575,7 +593,9 @@ def register(payload: AuthPayload):
 @app.post("/api/auth/login")
 def login(payload: AuthPayload):
     email = _normalize_email(payload.email)
-    users = _load_users()
+    with USERS_LOCK:
+        users = _ensure_demo_user(_load_users())
+        _save_users(users)
     user = users.get(email)
     if not user or not _verify_password(payload.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Email veya sifre hatali")
