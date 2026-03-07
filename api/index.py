@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from typing import List
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
@@ -106,7 +107,7 @@ def home() -> str:
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>FinSignal Live</h1>
+      <h1>FinSignal Live | Hoşgeldin, Ahmet Uğur</h1>
       <p class="sub">Altin, gumus ve diger varliklar icin canli teknik sinyal ekrani</p>
       <div class="controls">
         <select id="category">
@@ -135,6 +136,7 @@ def home() -> str:
               <th>Price Dev</th>
               <th>Fiyat</th>
               <th>Tarih</th>
+              <th>Son Guncelleme</th>
             </tr>
           </thead>
           <tbody id="rows"></tbody>
@@ -183,8 +185,13 @@ def home() -> str:
           <td>${x.price_deviation}</td>
           <td>${x.current_price}</td>
           <td>${x.last_date}</td>
+          <td>${x.updated_at || "-"}</td>
         </tr>
       `).join("");
+
+      if (!filtered.length) {
+        rowsEl.innerHTML = `<tr><td colspan="9">Filtreye uygun veri bulunamadi.</td></tr>`;
+      }
 
       metaEl.textContent = `${filtered.length} gosterilen / ${items.length} alinan sinyal`;
     }
@@ -197,10 +204,14 @@ def home() -> str:
       try {
         const res = await fetch(url);
         const data = await res.json();
-        cache = data.signals || [];
+        const updatedAt = data.generated_at
+          ? new Date(data.generated_at).toLocaleString("tr-TR")
+          : new Date().toLocaleString("tr-TR");
+        cache = (data.signals || []).map((x) => ({ ...x, updated_at: updatedAt }));
         render(cache);
       } catch (err) {
         metaEl.textContent = `Hata: ${err.message}`;
+        rowsEl.innerHTML = `<tr><td colspan="9">Veri alinamadi.</td></tr>`;
       }
     }
 
@@ -224,6 +235,7 @@ def signals(
     categories: List[str] = Query(default=[]),
     max_assets: int = Query(default=25, ge=1, le=120),
 ):
+    generated_at = datetime.now(timezone.utc).isoformat()
     selected_assets = ASSETS
     if categories:
         normalized = {c.lower() for c in categories}
@@ -232,8 +244,11 @@ def signals(
     selected_assets = selected_assets[:max_assets]
     data = generate_live_signals(selected_assets)
 
+    signals_data = [{**item, "updated_at": generated_at} for item in data]
+
     return {
         "count": len(data),
         "requested_assets": len(selected_assets),
-        "signals": data,
+        "generated_at": generated_at,
+        "signals": signals_data,
     }
