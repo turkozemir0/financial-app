@@ -233,7 +233,7 @@ def home() -> str:
     .sub { margin: 0 0 14px; color: var(--muted); }
     .auth {
       display: grid;
-      grid-template-columns: 220px 160px auto auto auto;
+      grid-template-columns: 220px 160px auto auto;
       gap: 8px;
       align-items: center;
       min-width: 340px;
@@ -298,7 +298,6 @@ def home() -> str:
           <div class="auth">
             <input id="email" type="email" placeholder="mail@ornek.com" />
             <input id="password" type="password" placeholder="sifre" />
-            <button id="registerBtn" class="btn-secondary">Kayit Ol</button>
             <button id="loginBtn">Giris Yap</button>
             <button id="logoutBtn" class="btn-warn">Cikis</button>
           </div>
@@ -367,7 +366,6 @@ def home() -> str:
     const analysisText = document.getElementById("analysisText");
     const emailEl = document.getElementById("email");
     const passwordEl = document.getElementById("password");
-    const registerBtn = document.getElementById("registerBtn");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const userState = document.getElementById("userState");
@@ -429,11 +427,19 @@ def home() -> str:
       metaEl.textContent = `${filtered.length} gosterilen / ${items.length} alinan sinyal`;
 
       document.querySelectorAll("button[data-symbol]").forEach((btn) => {
-        btn.addEventListener("click", async () => {
+        btn.onclick = async () => {
           const symbol = btn.getAttribute("data-symbol");
           const name = btn.getAttribute("data-name");
-          await runAiAnalysis(symbol, name);
-        });
+          btn.disabled = true;
+          const oldText = btn.textContent;
+          btn.textContent = "Bekle...";
+          try {
+            await runAiAnalysis(symbol, name);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = oldText;
+          }
+        };
       });
     }
 
@@ -453,14 +459,14 @@ def home() -> str:
       }
     }
 
-    async function authRequest(path) {
+    async function loginRequest() {
       const email = emailEl.value.trim();
       const password = passwordEl.value;
       if (!email || !password) {
         alert("Email ve sifre gerekli");
         return;
       }
-      const res = await fetch(path, {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -522,14 +528,16 @@ def home() -> str:
     categoryEl.addEventListener("change", () => render(cache));
     searchEl.addEventListener("input", () => render(cache));
 
-    registerBtn.addEventListener("click", async () => {
-      try { await authRequest("/api/auth/register"); }
+    loginBtn.addEventListener("click", async () => {
+      try { await loginRequest(); }
       catch (err) { alert(err.message); }
     });
 
-    loginBtn.addEventListener("click", async () => {
-      try { await authRequest("/api/auth/login"); }
-      catch (err) { alert(err.message); }
+    passwordEl.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter") {
+        try { await loginRequest(); }
+        catch (err) { alert(err.message); }
+      }
     });
 
     logoutBtn.addEventListener("click", () => {
