@@ -32,22 +32,25 @@ def home() -> str:
   <title>FinSignal Live</title>
   <style>
     :root {
-      --bg: #f4f7fb;
-      --surface: #ffffff;
-      --ink: #0f172a;
-      --muted: #64748b;
-      --line: #e2e8f0;
-      --accent: #0ea5e9;
-      --buy: #16a34a;
-      --sell: #dc2626;
-      --hold: #64748b;
+      --bg: #05070b;
+      --surface: #0f131b;
+      --ink: #e5ecf7;
+      --muted: #8a97ad;
+      --line: #273042;
+      --accent: #3bb3ff;
+      --buy: #37d67a;
+      --sell: #ff6b6b;
+      --hold: #a6b1c4;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: "Segoe UI", Tahoma, sans-serif;
       color: var(--ink);
-      background: radial-gradient(circle at top right, #dbeafe 0%, var(--bg) 45%);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(59, 179, 255, 0.14), transparent 35%),
+        radial-gradient(circle at 90% 0%, rgba(55, 214, 122, 0.12), transparent 30%),
+        var(--bg);
     }
     .wrap {
       max-width: 1100px;
@@ -59,7 +62,8 @@ def home() -> str:
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 18px;
-      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
     }
     h1 { margin: 0 0 6px; font-size: 28px; }
     .sub { margin: 0 0 14px; color: var(--muted); }
@@ -78,18 +82,22 @@ def home() -> str:
       border-radius: 10px;
       padding: 10px 12px;
       font-size: 14px;
-      background: #fff;
+      background: #111722;
+      color: var(--ink);
     }
+    input::placeholder { color: #74839b; }
     button {
       background: var(--accent);
       border: 0;
-      color: #fff;
+      color: #07101d;
       font-weight: 600;
       cursor: pointer;
     }
     .meta { color: var(--muted); font-size: 13px; margin: 8px 0 6px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 10px 8px; }
+    thead th { color: #9ab0cf; font-weight: 600; }
+    tbody tr:hover { background: rgba(59, 179, 255, 0.08); }
     .sig-buy { color: var(--buy); font-weight: 700; }
     .sig-sell { color: var(--sell); font-weight: 700; }
     .sig-hold { color: var(--hold); font-weight: 700; }
@@ -102,6 +110,7 @@ def home() -> str:
       flex-wrap: wrap;
     }
     .footer a { color: var(--accent); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
