@@ -402,7 +402,13 @@ def home() -> str:
     }
 
     function esc(text) {
-      return String(text ?? "").replace(/[&<>\"]/g, (ch) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[ch]);
+      return String(text ?? "").replace(/[&<>"]/g, (ch) => {
+        if (ch === "&") return "&amp;";
+        if (ch === "<") return "&lt;";
+        if (ch === ">") return "&gt;";
+        if (ch === "\"") return "&quot;";
+        return ch;
+      });
     }
 
     function render(items) {
