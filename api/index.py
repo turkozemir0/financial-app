@@ -406,7 +406,7 @@ def home() -> str:
         if (ch === "&") return "&amp;";
         if (ch === "<") return "&lt;";
         if (ch === ">") return "&gt;";
-        if (ch === "\"") return "&quot;";
+        if (ch.charCodeAt(0) === 34) return "&quot;";
         return ch;
       });
     }
