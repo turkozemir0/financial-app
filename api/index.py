@@ -7,13 +7,11 @@ import hashlib
 import hmac
 import json
 import os
-import secrets
 import sys
-import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 from urllib import request
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -31,8 +29,6 @@ from live_signals import fetch_history, generate_live_signals  # noqa: E402
 
 app = FastAPI(title="FinSignal API", version="1.2.0")
 
-USERS_FILE = Path("/tmp/finsignal_users.json")
-USERS_LOCK = threading.Lock()
 ANALYSIS_CACHE: Dict[str, Dict[str, object]] = {}
 ANALYSIS_TTL_SECONDS = 12 * 60 * 60
 TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60
@@ -53,44 +49,6 @@ def _normalize_email(email: str) -> str:
     if "@" not in value or "." not in value.split("@")[-1]:
         raise HTTPException(status_code=400, detail="Gecerli bir email giriniz")
     return value
-
-
-def _ensure_demo_user(users: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
-    if DEMO_EMAIL and DEMO_PASSWORD and DEMO_EMAIL not in users:
-        users[DEMO_EMAIL] = {
-            "password_hash": _hash_password(DEMO_PASSWORD),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "is_demo": "true",
-        }
-    return users
-
-
-def _load_users() -> Dict[str, Dict[str, str]]:
-    if not USERS_FILE.exists():
-        return {}
-    try:
-        return json.loads(USERS_FILE.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-
-
-def _save_users(users: Dict[str, Dict[str, str]]) -> None:
-    USERS_FILE.write_text(json.dumps(users, ensure_ascii=False), encoding="utf-8")
-
-
-def _hash_password(password: str, salt_hex: Optional[str] = None) -> str:
-    salt = bytes.fromhex(salt_hex) if salt_hex else secrets.token_bytes(16)
-    hashed = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 120_000)
-    return f"{salt.hex()}${hashed.hex()}"
-
-
-def _verify_password(password: str, stored: str) -> bool:
-    try:
-        salt_hex, digest_hex = stored.split("$", 1)
-    except ValueError:
-        return False
-    expected = _hash_password(password, salt_hex=salt_hex).split("$", 1)[1]
-    return hmac.compare_digest(expected, digest_hex)
 
 
 def _b64url(data: bytes) -> str:
@@ -308,8 +266,8 @@ def home() -> str:
         </div>
         <div>
           <div class="auth">
-            <input id="email" type="email" placeholder="mail@ornek.com" value="demo@finsignal.app" />
-            <input id="password" type="password" placeholder="sifre" value="FinSignal123" />
+            <input id="email" type="email" placeholder="mail@ornek.com" />
+            <input id="password" type="password" placeholder="sifre" />
             <button id="loginBtn">Giris Yap</button>
             <button id="logoutBtn" class="btn-warn">Cikis</button>
           </div>
@@ -580,30 +538,14 @@ def home() -> str:
 
 @app.post("/api/auth/register")
 def register(payload: AuthPayload):
-    email = _normalize_email(payload.email)
-
-    with USERS_LOCK:
-        users = _ensure_demo_user(_load_users())
-        if email in users:
-            raise HTTPException(status_code=409, detail="Bu email zaten kayitli")
-        users[email] = {
-            "password_hash": _hash_password(payload.password),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-        _save_users(users)
-
-    token = _create_token(email)
-    return {"ok": True, "email": email, "token": token}
+    _ = payload
+    raise HTTPException(status_code=403, detail="Kayit kapali")
 
 
 @app.post("/api/auth/login")
 def login(payload: AuthPayload):
     email = _normalize_email(payload.email)
-    with USERS_LOCK:
-        users = _ensure_demo_user(_load_users())
-        _save_users(users)
-    user = users.get(email)
-    if not user or not _verify_password(payload.password, user.get("password_hash", "")):
+    if email != DEMO_EMAIL or not hmac.compare_digest(payload.password, DEMO_PASSWORD):
         raise HTTPException(status_code=401, detail="Email veya sifre hatali")
 
     token = _create_token(email)
