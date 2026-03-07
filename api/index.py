@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, Query
+from fastapi.responses import HTMLResponse
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = ROOT_DIR / "src"
@@ -17,6 +18,24 @@ from assets import ASSETS  # noqa: E402
 from live_signals import generate_live_signals  # noqa: E402
 
 app = FastAPI(title="FinSignal API", version="1.0.0")
+
+
+@app.get("/", response_class=HTMLResponse)
+def home() -> str:
+    return """
+    <html>
+      <head><title>FinSignal</title></head>
+      <body style=\"font-family:Arial,sans-serif;padding:24px;\">
+        <h1>FinSignal Live API</h1>
+        <p>API is running.</p>
+        <ul>
+          <li><a href=\"/api/health\">/api/health</a></li>
+          <li><a href=\"/api/signals?max_assets=10\">/api/signals?max_assets=10</a></li>
+          <li><a href=\"/docs\">/docs</a></li>
+        </ul>
+      </body>
+    </html>
+    """
 
 
 @app.get("/api/health")
