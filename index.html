@@ -1,0 +1,97 @@
+﻿<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinSignal Live</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --buy: #0f9d58;
+      --sell: #db4437;
+      --hold: #6b7280;
+      --line: #e5e7eb;
+    }
+    body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: var(--text); }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+    h1 { margin: 0 0 6px; }
+    p { margin: 0 0 14px; color: var(--muted); }
+    button { background: #111827; color: #fff; border: none; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+    .meta { margin: 10px 0; color: var(--muted); font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 14px; }
+    th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 10px 8px; }
+    .buy { color: var(--buy); font-weight: 700; }
+    .sell { color: var(--sell); font-weight: 700; }
+    .hold { color: var(--hold); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card">
+      <h1>FinSignal Live</h1>
+      <p>Altin, gumus ve diger varliklar icin canli sinyal listesi</p>
+      <button id="refreshBtn">Yenile</button>
+      <div class="meta" id="meta">Yukleniyor...</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Varlik</th>
+            <th>Kategori</th>
+            <th>Sinyal</th>
+            <th>Skor</th>
+            <th>RSI</th>
+            <th>Fiyat</th>
+            <th>Tarih</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+  <script>
+    const rowsEl = document.getElementById('rows');
+    const metaEl = document.getElementById('meta');
+
+    function signalClass(signal) {
+      const s = String(signal || '').toLowerCase();
+      if (s === 'buy') return 'buy';
+      if (s === 'sell') return 'sell';
+      return 'hold';
+    }
+
+    function renderRows(items) {
+      rowsEl.innerHTML = items.map((x) => `
+        <tr>
+          <td>${x.name} (${x.symbol})</td>
+          <td>${x.category}</td>
+          <td class="${signalClass(x.signal)}">${x.signal}</td>
+          <td>${x.score}</td>
+          <td>${x.rsi}</td>
+          <td>${x.current_price}</td>
+          <td>${x.last_date}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadSignals() {
+      metaEl.textContent = 'Canli veri aliniyor...';
+      try {
+        const res = await fetch('/api/signals?max_assets=30');
+        const data = await res.json();
+        renderRows(data.signals || []);
+        metaEl.textContent = `${data.count} sinyal gosteriliyor (istek: ${data.requested_assets} varlik)`;
+      } catch (err) {
+        metaEl.textContent = `Hata: ${err.message}`;
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadSignals);
+    loadSignals();
+  </script>
+</body>
+</html>

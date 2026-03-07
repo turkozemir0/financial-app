@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinSignal — Proje Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070b0f;
+    --surface: #0d1318;
+    --border: #1a2535;
+    --accent: #00e5a0;
+    --accent2: #0093ff;
+    --accent3: #ff6b35;
+    --warn: #ffd166;
+    --text: #c8d8e8;
+    --muted: #4a6280;
+    --done: #00e5a0;
+    --active: #0093ff;
+    --planned: #ffd166;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 64px;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .logo {
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Status pills */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+  .pill.done   { color: var(--done);   border-color: rgba(0,229,160,0.3);  background: rgba(0,229,160,0.05); }
+  .pill.active { color: var(--active); border-color: rgba(0,147,255,0.3);  background: rgba(0,147,255,0.05); }
+  .pill.plan   { color: var(--warn);   border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.05); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .dot.pulse { animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.5)} }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent) 0%, var(--accent2) 40%, var(--warn) 70%, var(--muted) 100%);
+    opacity: 0.3;
+  }
+
+  /* Phase card */
+  .phase {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 0 24px;
+    margin-bottom: 12px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.5s ease forwards;
+  }
+  .phase:nth-child(1) { animation-delay: 0.1s }
+  .phase:nth-child(2) { animation-delay: 0.2s }
+  .phase:nth-child(3) { animation-delay: 0.3s }
+  .phase:nth-child(4) { animation-delay: 0.4s }
+  .phase:nth-child(5) { animation-delay: 0.5s }
+  .phase:nth-child(6) { animation-delay: 0.6s }
+  .phase:nth-child(7) { animation-delay: 0.7s }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0) }
+  }
+
+  /* Node */
+  .node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 24px;
+    gap: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .node-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    border: 2px solid;
+    flex-shrink: 0;
+  }
+  .phase.done-phase .node-circle {
+    color: var(--done); border-color: var(--done);
+    background: rgba(0,229,160,0.08);
+    box-shadow: 0 0 20px rgba(0,229,160,0.15);
+  }
+  .phase.active-phase .node-circle {
+    color: var(--active); border-color: var(--active);
+    background: rgba(0,147,255,0.08);
+    box-shadow: 0 0 30px rgba(0,147,255,0.3);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%,100%{ box-shadow: 0 0 20px rgba(0,147,255,0.2) }
+    50%{ box-shadow: 0 0 40px rgba(0,147,255,0.5) }
+  }
+  .phase.plan-phase .node-circle {
+    color: var(--warn); border-color: rgba(255,209,102,0.3);
+    background: rgba(255,209,102,0.03);
+  }
+
+  /* Card body */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .phase.done-phase .card::before   { background: linear-gradient(90deg, var(--done), transparent); }
+  .phase.active-phase .card::before { background: linear-gradient(90deg, var(--active), transparent); }
+  .phase.plan-phase .card::before   { background: linear-gradient(90deg, var(--warn), transparent); }
+
+  .card:hover { border-color: rgba(255,255,255,0.12); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .phase-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .phase-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+  .phase.done-phase .phase-badge   { color: var(--done);   border-color: rgba(0,229,160,0.3);  background: rgba(0,229,160,0.05); }
+  .phase.active-phase .phase-badge { color: var(--active); border-color: rgba(0,147,255,0.3);  background: rgba(0,147,255,0.05); }
+  .phase.plan-phase .phase-badge   { color: var(--warn);   border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.05); }
+
+  .phase-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  /* Tasks */
+  .tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #8aa0bc;
+  }
+  .task-icon {
+    margin-top: 1px;
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+  .phase.done-phase .task { color: #7abf9e; }
+  .phase.active-phase .task { color: #7ab0d4; }
+
+  /* Code snippet */
+  .code-block {
+    margin-top: 16px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6a8aaa;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+  .code-block .kw  { color: #0093ff; }
+  .code-block .fn  { color: #00e5a0; }
+  .code-block .str { color: #ffd166; }
+  .code-block .cm  { color: #3a5070; }
+  .code-block .num { color: #ff6b35; }
+
+  /* Tags row */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* Stack section */
+  .stack-section {
+    margin-top: 64px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.8s forwards;
+  }
+  .stack-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .stack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .stack-card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .stack-card-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stack-card-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Codex prompt box */
+  .codex-section {
+    margin-top: 48px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.9s forwards;
+  }
+  .codex-box {
+    background: linear-gradient(135deg, rgba(0,229,160,0.04) 0%, rgba(0,147,255,0.04) 100%);
+    border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .codex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .codex-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .codex-prompts {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .codex-prompt {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #8aa8c8;
+    line-height: 1.6;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .codex-prompt:hover {
+    border-color: rgba(0,229,160,0.3);
+    background: rgba(0,229,160,0.03);
+    color: var(--text);
+  }
+  .codex-prompt-num {
+    color: var(--accent);
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 80px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0;
+    animation: fadeUp 0.5s ease 1s forwards;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <div class="logo">// FinSignal System</div>
+      <h1>Proje<br><span>Roadmap</span></h1>
+      <div class="subtitle">Financial Signal Analysis · 100+ Assets · 6 Faz</div>
+    </div>
+    <div class="legend">
+      <div class="pill done"><div class="dot"></div>Tamamlandı</div>
+      <div class="pill active"><div class="dot pulse"></div>Şu an burada</div>
+      <div class="pill plan"><div class="dot"></div>Planlanan</div>
+    </div>
+  </header>
+
+  <div class="timeline">
+
+    <!-- FAZ 1 -->
+    <div class="phase done-phase">
+      <div class="node">
+        <div class="node-circle">F1</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="phase-title">Veri Toplama</div>
+          <div class="phase-badge">✓ Tamamlandı</div>
+        </div>
+        <div class="phase-desc">100+ finansal ürün için 5 yıllık günlük OHLCV verisi toplandı. Veri normalize edildi ve temizlendi.</div>
+        <div class="tasks">
+          <div class="task"><span class="task-icon">✓</span> 100–120 asset listesi oluşturuldu (Gold, Silver, BTC, S&P500…)</div>
+          <div class="task"><span class="task-icon">✓</span> Yahoo Finance / AlphaVantage / Quandl API entegrasyonu</div>
+          <div class="task"><span class="task-icon">✓</span> 5 yıllık günlük open/close/high/low/volume verisi çekildi</div>
+          <div class="task"><span class="task-icon">✓</span> Eksik veriler temizlendi, format standartlaştırıldı</div>
+          <div class="task"><span class="task-icon">✓</span> Tek normalize veri yapısına dönüştürüldü</div>
+        </div>
+        <div class="code-block">
+<span class="cm"># Codex prompt örneği:</span>
+<span class="kw">df</span> = yf.<span class="fn">download</span>(<span class="str">"GC=F"</span>, start=<span class="str">"2019-01-01"</span>, end=<span class="str">"2024-01-01"</span>)
+<span class="kw">df</span>.<span class="fn">dropna</span>(inplace=<span class="kw">True</span>)
+</div>
+        <div class="tags">
+          <span class="tag">yfinance</span>
+          <span class="tag">pandas</span>
+          <span class="tag">numpy</span>
+          <span class="tag">data cleaning</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAZ 2 -->
+    <div class="phase active-phase">
+      <div class="node">
+        <div class="node-circle">F2</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="phase-title">Temel İndikatör Hesaplama</div>
+          <div class="phase-badge">⬤ Aktif — Şu an burada</div>
+        </div>
+        <div class="phase-desc">Tarihsel fiyat verisinden MA, RSI ve fiyat sapması hesaplanarak ilk sinyaller üretiliyor.</div>
+        <div class="tasks">
+          <div class="task"><span class="task-icon">→</span> Moving Average: MA50 ve MA200 hesaplama</div>
+          <div class="task"><span class="task-icon">→</span> Crossover tespiti (MA50 &gt; MA200 = bullish)</div>
+          <div class="task"><span class="task-icon">→</span> RSI hesaplama (14 günlük pencere)</div>
+          <div class="task"><span class="task-icon">→</span> RSI &lt;30 → AL, RSI &gt;70 → SAT mantığı</div>
+          <div class="task"><span class="task-icon">→</span> Fiyat sapması: current_price / 5yr_avg</div>
+        </div>
+        <div class="code-block">
+<span class="cm"># MA Crossover</span>
+<span class="kw">df</span>[<span class="str">'MA50'</span>]  = <span class="kw">df</span>[<span class="str">'Close'</span>].<span class="fn">rolling</span>(<span class="num">50</span>).<span class="fn">mean</span>()
+<span class="kw">df</span>[<span class="str">'MA200'</span>] = <span class="kw">df</span>[<span class="str">'Close'</span>].<span class="fn">rolling</span>(<span class="num">200</span>).<span class="fn">mean</span>()
+
+<span class="cm"># RSI</span>
+<span class="kw">def</span> <span class="fn">calc_rsi</span>(series, period=<span class="num">14</span>):
+    delta = series.<span class="fn">diff</span>()
+    gain  = delta.<span class="fn">clip</span>(lower=<span class="num">0</span>).<span class="fn">rolling</span>(period).<span class="fn">mean</span>()
+    loss  = -delta.<span class="fn">clip</span>(upper=<span class="num">0</span>).<span class="fn">rolling</span>(period).<span class="fn">mean</span>()
+    <span class="kw">return</span> <span class="num">100</span> - (<span class="num">100</span> / (<span class="num">1</span> + gain/loss))
+</div>
+        <div class="tags">
+          <span class="tag">ta-lib</span>
+          <span class="tag">pandas_ta</span>
+          <span class="tag">RSI</span>
+          <span class="tag">moving average</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAZ 3 -->
+    <div class="phase plan-phase">
+      <div class="node">
+        <div class="node-circle">F3</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="phase-title">Gerçek Zamanlı Entegrasyon</div>
+          <div class="phase-badge">◎ Planlanan</div>
+        </div>
+        <div class="phase-desc">API pipeline: canlı fiyat çekimi → indikatör hesaplama → sinyal üretimi.</div>
+        <div class="tasks">
+          <div class="task"><span class="task-icon">○</span> Yahoo Finance / WebSocket ile canlı fiyat akışı</div>
+          <div class="task"><span class="task-icon">○</span> Otomatik indikatör yeniden hesaplama</div>
+          <div class="task"><span class="task-icon">○</span> AL / SAT / BEKLE sinyal çıktısı</div>
+          <div class="task"><span class="task-icon">○</span> Scheduler ile periyodik güncelleme (APScheduler)</div>
+        </div>
+        <div class="tags">
+          <span class="tag">FastAPI</span>
+          <span class="tag">APScheduler</span>
+          <span class="tag">websocket</span>
+          <span class="tag">REST API</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAZ 4 -->
+    <div class="phase plan-phase">
+      <div class="node">
+        <div class="node-circle">F4</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="phase-title">Çoklu Sinyal Skorlama</div>
+          <div class="phase-badge">◎ Planlanan</div>
+        </div>
+        <div class="phase-desc">Tek metrik yerine 3 indikatörün birleşimi ile weighted scoring sistemi.</div>
+        <div class="tasks">
+          <div class="task"><span class="task-icon">○</span> MA trend → +1 / -1</div>
+          <div class="task"><span class="task-icon">○</span> RSI oversold/overbought → +1 / -1</div>
+          <div class="task"><span class="task-icon">○</span> Fiyat sapması (undervalued/overvalued) → +1 / -1</div>
+          <div class="task"><span class="task-icon">○</span> Score ≥ +2 → BUY · Score ≤ -2 → SELL · diğer → HOLD</div>
+        </div>
+        <div class="code-block">
+<span class="kw">def</span> <span class="fn">score_asset</span>(ma_signal, rsi_val, price_dev):
+    score = <span class="num">0</span>
+    <span class="kw">if</span> ma_signal == <span class="str">"bullish"</span>:  score += <span class="num">1</span>
+    <span class="kw">if</span> rsi_val &lt; <span class="num">30</span>:            score += <span class="num">1</span>
+    <span class="kw">elif</span> rsi_val &gt; <span class="num">70</span>:          score -= <span class="num">1</span>
+    <span class="kw">if</span> price_dev &lt; <span class="num">0.85</span>:        score += <span class="num">1</span>
+    <span class="kw">elif</span> price_dev &gt; <span class="num">1.15</span>:      score -= <span class="num">1</span>
+    <span class="kw">return</span> <span class="str">"BUY"</span> <span class="kw">if</span> score&gt;=<span class="num">2</span> <span class="kw">else</span> (<span class="str">"SELL"</span> <span class="kw">if</span> score&lt;=-<span class="num">2</span> <span class="kw">else</span> <span class="str">"HOLD"</span>)
+</div>
+      </div>
+    </div>
+
+    <!-- FAZ 5 -->
+    <div class="phase plan-phase">
+      <div class="node">
+        <div class="node-circle">F5</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="phase-title">Dashboard & Görselleştirme</div>
+          <div class="phase-badge">◎ Planlanan</div>
+        </div>
+        <div class="phase-desc">120 varlığın sinyal durumunu, trend grafiklerini ve RSI değerlerini gösteren interaktif panel.</div>
+        <div class="tasks">
+          <div class="task"><span class="task-icon">○</span> Tüm asset'lerin AL/SAT/BEKLE tablosu</div>
+          <div class="task"><span class="task-icon">○</span> Candlestick + MA overlay grafikleri</div>
+          <div class="task"><span class="task-icon">○</span> RSI gauge göstergeleri</div>
+          <div class="task"><span class="task-icon">○</span> Kategori filtresi (Metal / Enerji / Kripto / Endeks)</div>
+        </div>
+        <div class="tags">
+          <span class="tag">React</span>
+          <span class="tag">Recharts</span>
+          <span class="tag">Streamlit</span>
+          <span class="tag">Plotly Dash</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAZ 6 -->
+    <div class="phase plan-phase">
+      <div class="node">
+        <div class="node-circle">F6</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="phase-title">Backtest (Akademik Validasyon)</div>
+          <div class="phase-badge">◎ Planlanan</div>
+        </div>
+        <div class="phase-desc">Modelin tarihsel doğruluğunu ölçmek için walk-forward backtest ve performans metrikleri.</div>
+        <div class="tasks">
+          <div class="task"><span class="task-icon">○</span> Walk-forward testing (train 2019–2022, test 2023)</div>
+          <div class="task"><span class="task-icon">○</span> Doğruluk oranı (accuracy) hesaplama</div>
+          <div class="task"><span class="task-icon">○</span> Sharpe Ratio ve max drawdown analizi</div>
+          <div class="task"><span class="task-icon">○</span> Benchmark vs Buy-and-Hold karşılaştırması</div>
+        </div>
+        <div class="tags">
+          <span class="tag">backtrader</span>
+          <span class="tag">vectorbt</span>
+          <span class="tag">matplotlib</span>
+          <span class="tag">scipy</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="stack-section">
+    <div class="stack-title">// Tech Stack</div>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <div class="stack-card-label">Data Layer</div>
+        <div class="stack-card-value">Python + Pandas</div>
+        <div class="stack-card-sub">yfinance · numpy · sqlalchemy</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-card-label">Signals</div>
+        <div class="stack-card-value">pandas_ta / ta-lib</div>
+        <div class="stack-card-sub">MA · RSI · MACD · Bollinger</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-card-label">Backend API</div>
+        <div class="stack-card-value">FastAPI</div>
+        <div class="stack-card-sub">APScheduler · Pydantic</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-card-label">Frontend</div>
+        <div class="stack-card-value">React / Streamlit</div>
+        <div class="stack-card-sub">Recharts · Plotly</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-card-label">Database</div>
+        <div class="stack-card-value">SQLite / PostgreSQL</div>
+        <div class="stack-card-sub">Tarihsel veri cache</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-card-label">Backtest</div>
+        <div class="stack-card-value">vectorbt</div>
+        <div class="stack-card-sub">backtrader · pyfolio</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Codex Prompts -->
+  <div class="codex-section">
+    <div class="codex-box">
+      <div class="codex-label">// Codex ile başla</div>
+      <div class="codex-title">Hazır Codex Prompt'ları</div>
+      <div class="codex-prompts">
+        <div class="codex-prompt">
+          <span class="codex-prompt-num">01</span>
+          <span>Create a Python module that downloads 5-year daily OHLCV data for a list of 100+ financial assets using yfinance, cleans missing values, and stores them in a normalized pandas DataFrame with columns: asset, date, open, close, high, low, volume.</span>
+        </div>
+        <div class="codex-prompt">
+          <span class="codex-prompt-num">02</span>
+          <span>Build a technical indicator calculator in Python using pandas_ta that computes MA50, MA200, RSI(14), and price deviation from 5-year average for each asset. Return a signal: BUY if MA50>MA200 and RSI<30, SELL if MA50<MA200 and RSI>70, otherwise HOLD.</span>
+        </div>
+        <div class="codex-prompt">
+          <span class="codex-prompt-num">03</span>
+          <span>Create a FastAPI backend with an endpoint /signals that fetches the latest price for each asset, recalculates all indicators, applies a scoring system (+1/-1 for each of 3 signals), and returns a JSON list of {asset, score, signal} objects.</span>
+        </div>
+        <div class="codex-prompt">
+          <span class="codex-prompt-num">04</span>
+          <span>Build a Streamlit dashboard that shows a table of 100+ assets with their BUY/SELL/HOLD signals, color-coded rows, an RSI gauge chart, and a candlestick chart with MA50 and MA200 overlays for any selected asset.</span>
+        </div>
+        <div class="codex-prompt">
+          <span class="codex-prompt-num">05</span>
+          <span>Implement a walk-forward backtest using vectorbt: train the signal model on 2019–2022 data, generate signals for 2023, compare predicted vs actual price direction, and output accuracy rate, Sharpe ratio, and max drawdown vs buy-and-hold benchmark.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    FinSignal System · Akademik Proje Roadmap · 6 Faz · 100+ Assets
+  </footer>
+
+</div>
+</body>
+</html>

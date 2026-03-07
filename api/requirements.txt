@@ -1,0 +1,6 @@
+﻿# Vercel Python entrypoint requirements
+# Kept same as root requirements for parity
+yfinance
+pandas
+numpy
+fastapi
