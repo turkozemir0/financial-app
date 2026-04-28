@@ -128,7 +128,7 @@ def _fetch_binance(symbol: str, interval: str = "1d", limit: int = 500) -> pd.Da
 
 def fetch_batch(symbols: list[str], period: str = "5y", interval: str = "1d") -> dict[str, pd.DataFrame]:
     """Download multiple tickers in one yfinance call, return dict of DataFrames."""
-    result: dict[str, pd.DataFrame] = {}
+    result: Dict[str, pd.DataFrame] = {}
 
     if not symbols:
         return result

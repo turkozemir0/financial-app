@@ -1,6 +1,7 @@
-﻿yfinance
+yfinance
 pandas
 numpy
 streamlit
 plotly
 fastapi
+requests
