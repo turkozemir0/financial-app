@@ -7,3 +7,4 @@ venv/
 .streamlit/
 data/*.csv
 !data/.gitkeep
+.vercel
