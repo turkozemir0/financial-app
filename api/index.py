@@ -23,6 +23,8 @@ SRC_DIR = ROOT_DIR / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+import pandas as pd  # noqa: E402
+
 from assets import ASSETS, get_categories  # noqa: E402
 from indicators import compute_full_analysis, add_indicators  # noqa: E402
 from live_signals import (  # noqa: E402
