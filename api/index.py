@@ -268,7 +268,7 @@ def asset_detail(
     ohlcv = []
     for _, row in chart_df.iterrows():
         ohlcv.append({
-            "date": pd.to_datetime(row["date"]).strftime("%Y-%m-%d %H:%M"),
+            "date": int(pd.to_datetime(row["date"]).timestamp()),
             "open": round(float(row["open"]), 4),
             "high": round(float(row["high"]), 4),
             "low": round(float(row["low"]), 4),
@@ -848,10 +848,7 @@ function renderChart(ohlcv){
     wickDownColor:'#ff6b6b',wickUpColor:'#37d67a',
   });
 
-  const candles=ohlcv.map(c=>{
-    const t=c.date.length<=10?c.date:c.date.replace(' ','T');
-    return{time:t,open:c.open,high:c.high,low:c.low,close:c.close};
-  });
+  const candles=ohlcv.map(c=>({time:c.date,open:c.open,high:c.high,low:c.low,close:c.close}));
   candleSeries.setData(candles);
 
   const volSeries=chart.addHistogramSeries({
@@ -860,10 +857,7 @@ function renderChart(ohlcv){
   });
   chart.priceScale('vol').applyOptions({scaleMargins:{top:0.8,bottom:0}});
 
-  const vols=ohlcv.map(c=>{
-    const t=c.date.length<=10?c.date:c.date.replace(' ','T');
-    return{time:t,value:c.volume,color:c.close>=c.open?'rgba(55,214,122,0.4)':'rgba(255,107,107,0.4)'};
-  });
+  const vols=ohlcv.map(c=>({time:c.date,value:c.volume,color:c.close>=c.open?'rgba(55,214,122,0.4)':'rgba(255,107,107,0.4)'}));
   volSeries.setData(vols);
 
   chart.timeScale().fitContent();
