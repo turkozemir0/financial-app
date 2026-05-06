@@ -615,6 +615,7 @@ tbody tr:hover{background:rgba(59,179,255,.08)}
   </div>
 
   <div class="tf-tabs" id="tfTabs">
+    <button data-tf="5m">5 Dk</button>
     <button data-tf="15m">15 Dk</button>
     <button data-tf="1h">1 Saat</button>
     <button data-tf="1d" class="active">Gunluk</button>

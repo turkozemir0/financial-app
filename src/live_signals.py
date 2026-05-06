@@ -15,6 +15,7 @@ from signals import build_signal_record
 
 # Timeframe configs: (yf_interval, yf_period, min_rows)
 TIMEFRAMES = {
+    "5m": ("5m", "60d", 30),
     "15m": ("15m", "60d", 30),
     "1h": ("1h", "730d", 30),
     "1d": ("1d", "5y", 30),
